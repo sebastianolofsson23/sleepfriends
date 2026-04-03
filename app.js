@@ -1,5 +1,6 @@
 import { initializeApp }                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup,
+         signInWithRedirect, getRedirectResult,
          signOut, onAuthStateChanged }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, getDocs,
          addDoc, deleteDoc, collection, query, where,
@@ -22,9 +23,10 @@ let unsubMyPosts   = null;
 // ── Auth ──────────────────────────────────────────────────────────────────────
 async function loginWithGoogle() {
   try {
-    await signInWithPopup(auth, new GoogleAuthProvider());
+    await signInWithRedirect(auth, new GoogleAuthProvider());
   } catch (err) {
     console.error('Login error:', err);
+    alert('Login error: ' + err.message);
   }
 }
 
@@ -354,6 +356,9 @@ document.getElementById('manual-post-form').addEventListener('submit', async e =
 });
 
 // ── Auth state ────────────────────────────────────────────────────────────────
+// Handle redirect result after Google login
+getRedirectResult(auth).catch(err => console.error('Redirect error:', err));
+
 onAuthStateChanged(auth, async user => {
   if (user) {
     currentUser    = user;

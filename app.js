@@ -356,8 +356,13 @@ document.getElementById('manual-post-form').addEventListener('submit', async e =
 });
 
 // ── Auth state ────────────────────────────────────────────────────────────────
-// Handle redirect result after Google login
-getRedirectResult(auth).catch(err => console.error('Redirect error:', err));
+// Handle redirect result — must run before onAuthStateChanged
+getRedirectResult(auth).then(result => {
+  if (result?.user) console.log('Redirect login OK:', result.user.displayName);
+}).catch(err => {
+  console.error('Redirect error:', err);
+  alert('Login failed: ' + err.message);
+});
 
 onAuthStateChanged(auth, async user => {
   if (user) {

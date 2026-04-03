@@ -311,7 +311,9 @@ function loadProfile() {
 // ── Feed refresh ──────────────────────────────────────────────────────────────
 function refreshFeed() {
   unsubFeed?.();
-  unsubFeed = subscribeFeed(followingIds, renderFeedList);
+  // Always include own posts in the feed
+  const ids = [...new Set([currentUser.uid, ...followingIds])];
+  unsubFeed = subscribeFeed(ids, renderFeedList);
 }
 
 // ── View routing ──────────────────────────────────────────────────────────────
@@ -358,16 +360,7 @@ document.getElementById('manual-post-form').addEventListener('submit', async e =
 });
 
 // ── Auth state ────────────────────────────────────────────────────────────────
-// Handle redirect result on page load
-getRedirectResult(auth).then(result => {
-  if (result?.user) {
-    alert('DEBUG: Got redirect user = ' + result.user.displayName);
-  } else {
-    alert('DEBUG: getRedirectResult returned null (no pending redirect)');
-  }
-}).catch(err => {
-  alert('DEBUG redirect error: ' + err.code + ' — ' + err.message);
-});
+getRedirectResult(auth).catch(err => console.error('Redirect error:', err.code));
 
 onAuthStateChanged(auth, async user => {
   if (user) {
@@ -383,7 +376,8 @@ onAuthStateChanged(auth, async user => {
     refreshFeed();
     showView('feed');
     } catch (err) {
-      alert('DEBUG app load error: ' + err.message);
+      console.error('App load error:', err);
+      alert('Error loading app: ' + err.message);
     }
   } else {
     currentUser = currentProfile = null;

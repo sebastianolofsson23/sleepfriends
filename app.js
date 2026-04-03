@@ -358,18 +358,20 @@ document.getElementById('manual-post-form').addEventListener('submit', async e =
 });
 
 // ── Auth state ────────────────────────────────────────────────────────────────
-// Handle redirect result on page load (Safari needs this explicit call)
+// Handle redirect result on page load
 getRedirectResult(auth).then(result => {
-  if (result?.user) console.log('Redirect login OK:', result.user.displayName);
-}).catch(err => {
-  if (err.code !== 'auth/no-current-user') {
-    console.error('Redirect error:', err.code, err.message);
-    alert('Login error: ' + err.message);
+  if (result?.user) {
+    alert('DEBUG: Got redirect user = ' + result.user.displayName);
+  } else {
+    alert('DEBUG: getRedirectResult returned null (no pending redirect)');
   }
+}).catch(err => {
+  alert('DEBUG redirect error: ' + err.code + ' — ' + err.message);
 });
 
 onAuthStateChanged(auth, async user => {
   if (user) {
+    try {
     currentUser    = user;
     currentProfile = await getOrCreateUser(user);
     await loadFollowing(user.uid);
@@ -380,6 +382,9 @@ onAuthStateChanged(auth, async user => {
     loadProfile();
     refreshFeed();
     showView('feed');
+    } catch (err) {
+      alert('DEBUG app load error: ' + err.message);
+    }
   } else {
     currentUser = currentProfile = null;
     followingIds = [];

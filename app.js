@@ -21,13 +21,12 @@ let unsubFeed      = null;
 let unsubMyPosts   = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-async function loginWithGoogle() {
-  try {
-    await signInWithRedirect(auth, new GoogleAuthProvider());
-  } catch (err) {
-    console.error('Login error:', err);
-    alert('Login error: ' + err.message);
-  }
+function loginWithGoogle() {
+  signInWithPopup(auth, new GoogleAuthProvider())
+    .catch(err => {
+      console.error('Login error:', err);
+      alert('Login error: ' + err.message);
+    });
 }
 
 async function logout() {
@@ -322,7 +321,7 @@ function showView(name) {
 }
 
 // ── Event listeners ───────────────────────────────────────────────────────────
-document.getElementById('google-login-btn').addEventListener('click', loginWithGoogle);
+document.getElementById('google-login-btn').addEventListener('click', () => loginWithGoogle());
 document.getElementById('logout-btn').addEventListener('click', logout);
 
 document.querySelectorAll('.nav-tab').forEach(tab => {

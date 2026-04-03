@@ -1,6 +1,7 @@
 import { initializeApp }                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup,
          signInWithRedirect, getRedirectResult,
+         setPersistence, browserLocalPersistence,
          signOut, onAuthStateChanged }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, getDocs,
          addDoc, deleteDoc, collection, query, where,
@@ -21,12 +22,14 @@ let unsubFeed      = null;
 let unsubMyPosts   = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-function loginWithGoogle() {
-  signInWithPopup(auth, new GoogleAuthProvider())
-    .catch(err => {
-      console.error('Login error:', err);
-      alert('Login error: ' + err.message);
-    });
+async function loginWithGoogle() {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    await signInWithRedirect(auth, new GoogleAuthProvider());
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('Login error: ' + err.message);
+  }
 }
 
 async function logout() {
@@ -355,12 +358,14 @@ document.getElementById('manual-post-form').addEventListener('submit', async e =
 });
 
 // ── Auth state ────────────────────────────────────────────────────────────────
-// Handle redirect result — must run before onAuthStateChanged
+// Handle redirect result on page load (Safari needs this explicit call)
 getRedirectResult(auth).then(result => {
   if (result?.user) console.log('Redirect login OK:', result.user.displayName);
 }).catch(err => {
-  console.error('Redirect error:', err);
-  alert('Login failed: ' + err.message);
+  if (err.code !== 'auth/no-current-user') {
+    console.error('Redirect error:', err.code, err.message);
+    alert('Login error: ' + err.message);
+  }
 });
 
 onAuthStateChanged(auth, async user => {
